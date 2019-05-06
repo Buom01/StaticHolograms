@@ -2,7 +2,7 @@ PLUGIN = nil
 
 function Initialize(Plugin)
 	Plugin:SetName("StaticHolograms")
-	Plugin:SetVersion(1)
+	Plugin:SetVersion(2)
 
 	-- Hooks
 
@@ -56,7 +56,7 @@ function PrintUsage(Player)
 end
 
 function PrintList(Player)
-	Player:SendMessageInfo("Here is the list of all holograms (in loaded chunk only)")
+	Player:SendMessageInfo("Here is the list of all holograms (in loaded chunks only)")
 	Player:SendMessageInfo("ID | World | X Y Z | Text")
 	cRoot:Get():ForEachWorld(
 		function(World)
@@ -83,7 +83,7 @@ function AddHologram(Split, Player)
 
 	local World = Player:GetWorld()
 
-	local ArmorStandId = World:SpawnArmorStand(Vector3d(X, Y, Z), 0, 0)
+	local ArmorStandId = World:SpawnArmorStand(Vector3d(X, Y, Z), 0)
 
 	if ArmorStandId == INVALID_ID then
 		return Player:SendMessageFailure("Failed to spawn the hologram")
@@ -92,6 +92,7 @@ function AddHologram(Split, Player)
 	World:DoWithEntityByID(
 		ArmorStandId,
 		function(ArmorStand)
+			ArmorStand:SetMarker()
 			ArmorStand:SetVisible(false)
 			ArmorStand:SetCustomName(Text)
 			ArmorStand:SetCustomNameAlwaysVisible(true)
