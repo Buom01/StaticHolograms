@@ -80,6 +80,11 @@ function AddHologram(Split, Player)
 	end
 
 	local Text = GetText(Split, 6)
+	local isItem = false
+
+	if (Text == "(ITEM)") then  -- Not documented cause it make Core dump at server stop ! Moreover Server don't saves entity's parents so..
+		isItem = true
+	end
 
 	local World = Player:GetWorld()
 
@@ -89,15 +94,33 @@ function AddHologram(Split, Player)
 		return Player:SendMessageFailure("Failed to spawn the hologram")
 	end
 
+	if isItem then
+		local Item = Player:GetEquippedItem()
+		local PickupId = World:SpawnItemPickup(X, Y, Z, Item, 0, 0, 0, 9999999, false)
+
+		if PickupId == INVALID_ID then
+			return Player:SendMessageFailure("Failed to spawn the hologram's item")
+		end
+		World:DoWithEntityByID(
+			PickupId,
+			function(Pickup)
+				Pickup:AttachToID(ArmorStandId)
+				Player:SendMessageSuccess("Hologram successfully spawn at ("..X..", "..Y..", "..Z..") in world "..World:GetName().." with the ID "..ArmorStandId.." and your holded item")
+			end
+		)
+	end
+
 	World:DoWithEntityByID(
 		ArmorStandId,
 		function(ArmorStand)
 			ArmorStand:SetGravity(0)
 			ArmorStand:SetMarker()
 			ArmorStand:SetVisible(false)
-			ArmorStand:SetCustomName(Text)
-			ArmorStand:SetCustomNameAlwaysVisible(true)
-			Player:SendMessageSuccess("Hologram successfully spawn at ("..X..", "..Y..", "..Z..") in world "..World:GetName().." with the ID "..ArmorStandId.." and the text: "..Text)
+			if not isItem then
+				ArmorStand:SetCustomName(Text)
+				ArmorStand:SetCustomNameAlwaysVisible(true)
+				Player:SendMessageSuccess("Hologram successfully spawn at ("..X..", "..Y..", "..Z..") in world "..World:GetName().." with the ID "..ArmorStandId.." and the text: "..Text)
+			end
 		end
 	)
 end
@@ -137,9 +160,8 @@ function MoveHologram(Split, Player)
 		ArmorStandId,
 		function(ArmorStand)
 			if (IsAnHologram(ArmorStand)) then
-				ArmorStand:SetPosition(Vector3d(X,Y,Z))
+				ArmorStand:TeleportToCoords(X,Y,Z)
 				Player:SendMessageSuccess("Hologram successfully moved")
-				Player:SendMessageInfo("You might need to reconnect to see the move")
 				return true
 			end
 			return false
