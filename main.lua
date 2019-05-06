@@ -2,7 +2,7 @@ PLUGIN = nil
 
 function Initialize(Plugin)
 	Plugin:SetName("StaticHolograms")
-	Plugin:SetVersion(2)
+	Plugin:SetVersion(3)
 
 	-- Hooks
 
@@ -38,13 +38,13 @@ function MainHandler(Split, Player)
 end
 
 function IsAnHologram(Entity)
-	return (Entity:IsArmorStand() and Entity:IsInvisible() and Entity:HasCustomName() and Entity:IsCustomNameAlwaysVisible() and Entity:IsMarker())
+	return (Entity:IsArmorStand() and Entity:IsInvisible() and Entity:HasCustomName() and Entity:IsCustomNameAlwaysVisible() and Entity:IsMarker() and not Entity:HasGravity())
 end
 
 function GetText(Split, Begin)
 	local Text = Split[Begin]
 	for i=Begin+1, #Split do
-		Text = Text .. "\n" .. Split[i]
+		Text = Text .. " " .. Split[i]
 	end
 	Text = Text:gsub("%&", "§")
 	return Text
@@ -92,11 +92,11 @@ function AddHologram(Split, Player)
 	World:DoWithEntityByID(
 		ArmorStandId,
 		function(ArmorStand)
+			ArmorStand:SetGravity(0)
 			ArmorStand:SetMarker()
 			ArmorStand:SetVisible(false)
 			ArmorStand:SetCustomName(Text)
 			ArmorStand:SetCustomNameAlwaysVisible(true)
-			-- Whould probably also define no gravity in a next release
 			Player:SendMessageSuccess("Hologram successfully spawn at ("..X..", "..Y..", "..Z..") in world "..World:GetName().." with the ID "..ArmorStandId.." and the text: "..Text)
 		end
 	)
